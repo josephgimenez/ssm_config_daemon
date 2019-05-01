@@ -3,7 +3,9 @@
     {
       "service_name": "nginx",
       "keys": [
-          "/shared/nginx/worker_processes"
+          "/shared/nginx/worker_connections",
+          "/shared/nginx/worker_processes",
+          "/shared/nginx/keepalive_timeout"
       ],
       "template": "/tmp/nginx.hbs",
       "rendered": "/etc/nginx/nginx.conf",
