@@ -14,4 +14,5 @@ Automatic re-rendering:
 
 TODO:
 - Have configuration flag to designate a list of keys as 'render once' vs 'render upon every parameter store key modification'
+- Make AWS Kinesis data stream name configurable and provide terraform/etc. for AWS Kinesis data stream creation
 - Improve error handling (result types, etc.)
