@@ -1,0 +1,13 @@
+{
+  "settings": [
+    {
+      "service_name": "nginx",
+      "keys": [
+          "/shared/nginx/worker_processes"
+      ],
+      "template": "/tmp/nginx.hbs",
+      "rendered": "/etc/nginx/nginx.conf",
+      "reload_cmd": "nginx -s reload"
+    }
+  ]
+}
