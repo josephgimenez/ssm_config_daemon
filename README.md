@@ -14,3 +14,4 @@ Automatic re-rendering:
 
 TODO:
 - Have configuration flag to designate a list of keys as 'render once' vs 'render upon every parameter store key modification'
+- Improve error handling (result types, etc.)
