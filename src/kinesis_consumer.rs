@@ -1,12 +1,11 @@
 use {
-    crate::config::{Config, Parameter, Service},
+    crate::error::DaemonError,
+    crate::config::{Config, Service},
     rusoto_core::Region,
     rusoto_kinesis::{KinesisClient, Kinesis, DescribeStreamInput, GetShardIteratorInput, GetRecordsInput},
-    std::io::{Error, ErrorKind},
     serde_json::Value,
     std::{str, thread::sleep, time::Duration },
 };
-use core::borrow::Borrow;
 
 pub struct KinesisConsumerClient {
     client: KinesisClient,
@@ -27,7 +26,7 @@ impl KinesisConsumerClient {
         }
     }
 
-    fn get_shard_id(&mut self) -> Result<(), Box<std::error::Error>> {
+    fn get_shard_id(&mut self) -> Result<(), DaemonError> {
         let describe_output = self.client.describe_stream(
             DescribeStreamInput {
                 stream_name: self.stream_name.clone(),
@@ -52,7 +51,7 @@ impl KinesisConsumerClient {
         Ok(())
     }
 
-    pub fn start_event_loop(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn start_event_loop(&mut self) -> Result<(), DaemonError> {
 
         self.get_shard_id()?;
 
@@ -64,7 +63,6 @@ impl KinesisConsumerClient {
 
             for record in &records_output.records {
                 let ps_event: Value = serde_json::from_str(str::from_utf8(record.data.as_slice())?)?;
-                println!("Got update at path: {} with new value: {}", ps_event["requestParameters"]["name"], ps_event["requestParameters"]["value"]);
 
                 for service in &mut self.service_parameters {
                     match service
@@ -72,6 +70,10 @@ impl KinesisConsumerClient {
                         .iter_mut()
                         .find(|parameter| parameter.ps_path == ps_event["requestParameters"]["name"]) {
                         Some(parameter) => {
+                            println!("Got update at path: {} with new value: {}",
+                                     ps_event["requestParameters"]["name"],
+                                     ps_event["requestParameters"]["value"]);
+
                             parameter.value = ps_event["requestParameters"]["value"].clone();
                             crate::config::render_config(&vec![service.clone()], &self.config)?;
                         },

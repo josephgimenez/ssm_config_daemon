@@ -1,6 +1,9 @@
+#[macro_use] extern crate derive_more;
+#[macro_use] extern crate failure_derive;
 #[macro_use] extern crate serde_derive;
 
 mod config;
+mod error;
 mod kinesis_consumer;
 mod parameter_store;
 
@@ -8,19 +11,16 @@ use {
     clap::{Arg, App},
     config::*,
     daemonize::Daemonize,
+    error::DaemonError,
     kinesis_consumer::KinesisConsumerClient,
     parameter_store::SsmClient,
-    serde_json::Value,
     std::{
         fs::File,
         path::Path,
-        str,
-        thread::sleep,
-        time::Duration,
     },
 };
 
-fn main() {
+fn main() -> Result<(), DaemonError> {
     let matches = App::new("SSM Config Daemon")
         .version("1.1")
         .author("joseph.gimenez@snagajob.com")
@@ -49,10 +49,10 @@ fn main() {
 
     println!("Daemon successfully started.");
 
-    let config =  parse_configuration(&config_path);
+    let config =  parse_configuration(&config_path)?;
 
     let ssm_client = SsmClient::new();
-    let service_parameters = ssm_client.get_parameters(&config);
+    let service_parameters = ssm_client.get_parameters(&config)?;
 
     match render_config( &service_parameters, &config) {
         Ok(()) => {
@@ -67,4 +67,6 @@ fn main() {
             std::process::exit(1);
         }
     }
+
+    Ok(())
 }
